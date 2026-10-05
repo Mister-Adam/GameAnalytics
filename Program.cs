@@ -3,14 +3,17 @@ using GameAnalytics.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 // Configure services
 builder.Services.AddOpenApi();
 
 // Connection string
 var connectionString =
-    builder.Configuration.GetConnectionString("GameAnalytics")
+    builder.Configuration["DATABASE_URL"]
     ?? throw new InvalidOperationException(
-        "Connection string 'GameAnalytics' not found."
+        "DATABASE_URL not found."
     );
 
 // Register application services
