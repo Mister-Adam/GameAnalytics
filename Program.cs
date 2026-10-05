@@ -1,12 +1,31 @@
+using GameAnalytics.EndPoints;
+using GameAnalytics.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+// Configure services
 builder.Services.AddOpenApi();
 
+// Connection string
+var connectionString =
+    builder.Configuration.GetConnectionString("GameAnalytics")
+    ?? throw new InvalidOperationException(
+        "Connection string 'GameAnalytics' not found."
+    );
+
+// Register application services
+builder.Services.AddScoped(
+    serviceProvider => new AnalyticsService(connectionString)
+);
+
+builder.Services.AddScoped(
+    serviceProvider => new EventService(connectionString)
+);
+
+// Build application
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure application
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -14,22 +33,9 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var events = new List<GameEvent>();
+// Register endpoints
+app.MapEventEndpoints();
+app.MapAnalyticsEndpoints();
 
-app.MapPost("/events", (GameEvent gameEvent) =>
-{
-    events.Add(gameEvent);
-    return gameEvent;
-});
-
-app.MapGet("/events", () => events.ToArray())
-    .WithName("GetGameEvents");
-
-
+// Start application
 app.Run();
-
-
-
-record GameEvent(string EventType, int Level);
-
-
