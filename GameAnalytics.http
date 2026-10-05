@@ -1,6 +1,0 @@
-@GameAnalytics_HostAddress = http://localhost:5064
-
-GET {{GameAnalytics_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
