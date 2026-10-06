@@ -1,6 +1,6 @@
 using GameAnalytics.EndPoints;
 using GameAnalytics.Services;
-
+using Npgsql;
 var builder = WebApplication.CreateBuilder(args);
 
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
@@ -10,12 +10,18 @@ builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
 builder.Services.AddOpenApi();
 
 // Connection string
-var connectionString =
-    $"Host={builder.Configuration["PGHOST"]};" +
-    $"Port={builder.Configuration["PGPORT"]};" +
-    $"Username={builder.Configuration["PGUSER"]};" +
-    $"Password={builder.Configuration["PGPASSWORD"]};" +
-    $"Database={builder.Configuration["PGDATABASE"]}";
+string Require(string key) =>
+    builder.Configuration[key]
+    ?? throw new InvalidOperationException($"Environment variable '{key}' is not set.");
+
+var connectionString = new NpgsqlConnectionStringBuilder
+{
+    Host = Require("PGHOST"),
+    Port = int.Parse(Require("PGPORT")),
+    Username = Require("PGUSER"),
+    Password = Require("PGPASSWORD"),
+    Database = Require("PGDATABASE")
+}.ConnectionString;
 
 // Register application services
 builder.Services.AddScoped(
