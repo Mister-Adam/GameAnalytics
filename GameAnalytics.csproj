@@ -12,7 +12,7 @@
     <PackageReference Include="Npgsql.DependencyInjection" Version="10.0.3" />
   </ItemGroup>
 <ItemGroup>
-  <None Update="Sql\**\*.sql" CopyToOutputDirectory="PreserveNewest" />
+  <EmbeddedResource Include="Features\**\*.sql" />
 </ItemGroup>
 
 </Project>
