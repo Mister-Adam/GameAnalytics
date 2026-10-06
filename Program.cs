@@ -1,12 +1,8 @@
-using GameAnalytics.EndPoints;
-using GameAnalytics.Services;
+using GameAnalytics.Endpoints;
 using Npgsql;
+
 var builder = WebApplication.CreateBuilder(args);
 
-var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
-
-// Configure services
 builder.Services.AddOpenApi();
 
 // Connection string
@@ -23,19 +19,14 @@ var connectionString = new NpgsqlConnectionStringBuilder
     Database = Require("PGDATABASE")
 }.ConnectionString;
 
-// Register application services
-builder.Services.AddScoped(
-    serviceProvider => new AnalyticsService(connectionString)
-);
+// Create and register NpgsqlDataSource singleton
+var dataSource = NpgsqlDataSource.Create(connectionString);
+builder.Services.AddSingleton(dataSource);
 
-builder.Services.AddScoped(
-    serviceProvider => new EventService(connectionString)
-);
-
-// Build application
 var app = builder.Build();
 
-// Configure application
+app.Lifetime.ApplicationStopping.Register(() => dataSource.Dispose());
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -43,9 +34,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Register endpoints
+// Wire up the feature slices
 app.MapEventEndpoints();
 app.MapAnalyticsEndpoints();
 
-// Start application
 app.Run();
