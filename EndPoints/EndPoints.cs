@@ -17,6 +17,7 @@ public static class EndpointExtensions
     {
         var group = app.MapGroup("/events").WithTags("Events");
 
-        TrackEvent.Map(group);
+        TrackEvent.Map(group); // POST /events
+        GetEvents.Map(group);  // GET /events
     }
 }
