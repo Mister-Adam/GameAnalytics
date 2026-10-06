@@ -18,6 +18,7 @@ public static class GetWinRates
         long GamesPlayed,
         double Ratio
     );
+    private static readonly string Sql = SqlFiles.Load(typeof(GetWinRates)); 
 
     public static void Map(RouteGroupBuilder group)
     {
@@ -31,21 +32,8 @@ public static class GetWinRates
                 _ => "'Global'"
             };
 
-            var sql = $"""
-                SELECT 
-                    {groupByColumn}::text AS subject,
-                    COUNT(*) FILTER (WHERE won) AS victories,
-                    COUNT(*) FILTER (WHERE NOT won) AS defeats,
-                    COUNT(*) AS games_played,
-                    ROUND(COUNT(*) FILTER (WHERE won)::numeric / NULLIF(COUNT(*), 0), 4)::float8 AS ratio
-                FROM matches
-                WHERE ($1::text IS NULL OR player_id = $1)
-                  AND ($2::text IS NULL OR character_id = $2)
-                GROUP BY {groupByColumn};
-                """;
-
             await using var connection = await dataSource.OpenConnectionAsync();
-            await using var command = new NpgsqlCommand(sql, connection);
+            await using var command = new NpgsqlCommand(Sql, connection);
             command.Parameters.AddWithValue(query.PlayerId is null ? DBNull.Value : query.PlayerId);
             command.Parameters.AddWithValue(query.CharacterId is null ? DBNull.Value : query.CharacterId);
 

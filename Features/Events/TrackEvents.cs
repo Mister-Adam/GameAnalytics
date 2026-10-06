@@ -16,7 +16,7 @@ public static class TrackEvent
         group.MapPost("/", async (Request request, NpgsqlDataSource dataSource) =>
         {
             const string sql = """
-                INSERT INTO events (player_id, event_name, payload, created_at)
+                INSERT INTO events (player_id, event_name, payload, event_time)
                 VALUES ($1, $2, $3::jsonb, NOW());
                 """;
 
