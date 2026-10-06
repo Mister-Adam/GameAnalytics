@@ -11,10 +11,11 @@ builder.Services.AddOpenApi();
 
 // Connection string
 var connectionString =
-    builder.Configuration["DATABASE_URL"]
-    ?? throw new InvalidOperationException(
-        "DATABASE_URL not found."
-    );
+    $"Host={builder.Configuration["PGHOST"]};" +
+    $"Port={builder.Configuration["PGPORT"]};" +
+    $"Username={builder.Configuration["PGUSER"]};" +
+    $"Password={builder.Configuration["PGPASSWORD"]};" +
+    $"Database={builder.Configuration["PGDATABASE"]}";
 
 // Register application services
 builder.Services.AddScoped(

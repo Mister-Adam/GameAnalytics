@@ -8,53 +8,39 @@ public class EventService(string connectionString)
 {
     private readonly string _connectionString = connectionString;
 
-    // public async Task<List<StoredGameEvent>> GetEvents()
-    // {
-    //     using var connection =
-    //         new NpgsqlConnection(_connectionString);
-
-    //     await connection.OpenAsync();
-
-    //     // TODO: Temporary when DB not online, to remove when finished
-    //     var command = new NpgsqlCommand(
-    //         "SELECT * FROM events",
-    //         connection
-    //     );
-
-    //     var reader = await command.ExecuteReaderAsync();
-
-    //     var results = new List<StoredGameEvent>();
-
-    //     while (await reader.ReadAsync())
-    //     {
-    //         var gameEvent = new StoredGameEvent(
-    //             (int)reader["id"],
-    //             (string)reader["player_id"],
-    //             (string)reader["session_id"],
-    //            (string)reader["rund_id"],
-    //             (string)reader["event_type"],
-    //             (DateTime)reader["event_time"]
-    //         );
-
-    //         results.Add(gameEvent);
-    //     }
-
-    //     return results;
-    // }
-
     public async Task<List<StoredGameEvent>> GetEvents()
     {
-        // Simulate database latency
-        await Task.Delay(50);
+        using var connection =
+            new NpgsqlConnection(_connectionString);
 
-        // Temporary mock data while the database is offline
-        return new List<StoredGameEvent>
-    {
-        new StoredGameEvent(1, "player_001", "sess_abc", "run_1", "GameStarted", DateTime.UtcNow.AddMinutes(-10)),
-        new StoredGameEvent(2, "player_001", "sess_abc", "run_1", "GameClosed", DateTime.UtcNow.AddMinutes(-8)),
-    };
+        await connection.OpenAsync();
+
+        var command = new NpgsqlCommand(
+            "SELECT id, player_id, session_id, run_id, event_type, event_time " +
+            "FROM events",
+            connection
+        );
+
+        var reader = await command.ExecuteReaderAsync();
+
+        var results = new List<StoredGameEvent>();
+
+        while (await reader.ReadAsync())
+        {
+            var gameEvent = new StoredGameEvent(
+                (int)reader["id"],
+                (string)reader["player_id"],
+                (string)reader["session_id"],
+                (string)reader["run_id"],
+                (string)reader["event_type"],
+                (DateTime)reader["event_time"]
+            );
+
+            results.Add(gameEvent);
+        }
+
+        return results;
     }
-
     public async Task AddEvent(GameEvent gameEvent)
     {
         ValidatePayload(gameEvent);
@@ -111,20 +97,20 @@ public class EventService(string connectionString)
         if (gameEvent.EventType is GameEventType.GameStarted or GameEventType.GameClosed)
             return;
 
-        if (!gameEvent.Payload.TryGetProperty("characters", out var characters))
+        if (!gameEvent.Payload.TryGetProperty("party", out var party))
             return;
 
-        if (characters.ValueKind != JsonValueKind.Array)
+        if (party.ValueKind != JsonValueKind.Array)
         {
             throw new ArgumentException(
-                "'characters' must be an array."
+                "'party' must be an array."
             );
         }
 
-        if (characters.GetArrayLength() == 0)
+        if (party.GetArrayLength() == 0)
         {
             throw new ArgumentException(
-                "'characters' must contain at least one character."
+                "'party' must contain at least one character."
             );
         }
     }
