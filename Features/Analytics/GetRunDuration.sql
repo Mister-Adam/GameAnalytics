@@ -1,13 +1,13 @@
 WITH ordered_events AS (
     SELECT
         event_time,
-        event_type,
+        event_name,
         LEAD(event_time) OVER (
             ORDER BY event_time
         ) AS next_event_time,
-        LEAD(event_type) OVER (
+        LEAD(event_name) OVER (
             ORDER BY event_time
-        ) AS next_event_type
+        ) AS event_name
     FROM events
     WHERE player_id = @playerId
     AND session_id = @sessionId
@@ -18,11 +18,11 @@ run_segments AS (
         event_time AS start_time,
         next_event_time AS end_time
     FROM ordered_events
-    WHERE event_type IN (
+    WHERE event_name IN (
         'OnRunCreated',
         'OnRunResumed'
     )
-    AND next_event_type IN (
+    AND next_event_name IN (
         'OnRunPaused',
         'Victory',
         'Defeat',

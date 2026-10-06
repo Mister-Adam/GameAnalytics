@@ -1,7 +1,7 @@
 SELECT
     id,
     player_id,
-    event_type,
+    event_name,
     payload::text AS payload_json,
     event_time
 FROM events

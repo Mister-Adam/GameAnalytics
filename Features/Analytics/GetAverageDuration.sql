@@ -3,15 +3,15 @@ WITH ordered_events AS (
         player_id,
         run_id,
         event_time,
-        event_type,
+        event_name,
         LEAD(event_time) OVER (
             PARTITION BY player_id, run_id
             ORDER BY event_time
         ) AS next_event_time,
-        LEAD(event_type) OVER (
+        LEAD(event_name) OVER (
             PARTITION BY player_id, run_id
             ORDER BY event_time
-        ) AS next_event_type
+        ) AS next_event_name
     FROM events
     WHERE player_id = @playerId
 ),
@@ -22,11 +22,11 @@ run_segments AS (
         event_time AS start_time,
         next_event_time AS end_time
     FROM ordered_events
-    WHERE event_type IN (
+    WHERE event_name IN (
         'OnRunCreated',
         'OnRunResumed'
     )
-    AND next_event_type IN (
+    AND next_event_name IN (
         'OnRunPaused',
         'Victory',
         'Defeat',
@@ -45,7 +45,7 @@ completed_runs AS (
         FROM events completed
         WHERE completed.player_id = run_segments.player_id
         AND completed.run_id = run_segments.run_id
-        AND completed.event_type IN (
+        AND completed.event_name IN (
             'Victory',
             'Defeat',
             'Surrender'

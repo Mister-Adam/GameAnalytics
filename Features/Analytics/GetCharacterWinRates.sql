@@ -2,7 +2,7 @@ SELECT
     character,
 
     COUNT(*) FILTER (
-        WHERE event_type = @victory
+        WHERE event_name = @victory
     ) AS victories,
 
     COUNT(*) FILTER (
