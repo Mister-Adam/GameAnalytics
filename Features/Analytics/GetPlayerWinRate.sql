@@ -1,6 +1,5 @@
 SELECT
-    character,
-
+    player_id,
     COUNT(*) FILTER (
         WHERE event_name = @victory
     ) AS victories,
@@ -13,7 +12,6 @@ SELECT
         WHERE event_name = @surrender
     ) AS surrenders
 
-FROM events,
-     json_array_elements_text(payload -> 'party') AS character
-
-GROUP BY character;
+FROM events 
+WHERE player_id = @playerId
+GROUP BY player_id;

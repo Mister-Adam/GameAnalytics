@@ -7,11 +7,11 @@ WITH ordered_events AS (
         ) AS next_event_time,
         LEAD(event_name) OVER (
             ORDER BY event_time
-        ) AS event_name
+        ) AS next_event_name
     FROM events
     WHERE player_id = @playerId
-    AND session_id = @sessionId
-    AND run_id = @runId
+      AND session_id = @sessionId
+      AND run_id = @runId
 ),
 run_segments AS (
     SELECT
@@ -30,7 +30,9 @@ run_segments AS (
     )
 )
 SELECT
+    @runId AS run_id,
     MIN(start_time) AS start_time,
     MAX(end_time) AS end_time,
     SUM(end_time - start_time) AS run_duration
-FROM run_segments;
+FROM run_segments
+GROUP BY run_id;

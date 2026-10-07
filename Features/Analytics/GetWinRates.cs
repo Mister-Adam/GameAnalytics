@@ -22,7 +22,7 @@ public static class GetWinRates
     );
  
     private static readonly string GlobalSql = SqlFiles.Load(typeof(GetWinRates), "GetWinRates.sql");
-    private static readonly string PlayerSql = SqlFiles.Load(typeof(GetWinRates), "GetPlayerWinRate.sql"); //TODO:
+    private static readonly string PlayerSql = SqlFiles.Load(typeof(GetWinRates), "GetPlayerWinRate.sql");
     private static readonly string CharacterSql = SqlFiles.Load(typeof(GetWinRates), "GetCharacterWinRates.sql");
 
     public static void Map(RouteGroupBuilder group)

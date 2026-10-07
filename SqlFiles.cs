@@ -1,5 +1,6 @@
 internal static class SqlFiles
 {
+    //TODO: this is stupid ? 
     public static string Load(Type owner, string fileName)
     {
         var assembly = owner.Assembly;

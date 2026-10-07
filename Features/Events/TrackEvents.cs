@@ -15,6 +15,7 @@ public static class TrackEvent
     {
         group.MapPost("/", async (Request request, NpgsqlDataSource dataSource) =>
         {
+            // $3::jsonb cast as JSON otherwise need to  write NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Jsonb,Value = request.PayloadJson ?? "{}"
             const string sql = """
                 INSERT INTO events (player_id, event_name, payload, event_time)
                 VALUES ($1, $2, $3::jsonb, NOW());

@@ -20,21 +20,22 @@ public static class GetRunDuration
         TimeSpan? AverageDuration
     );
 
-    private static readonly string Sql = SqlFiles.Load(typeof(GetRunDuration)); 
-    
+    private static readonly string Sql = SqlFiles.Load(typeof(GetRunDuration), "GetRunDuration.sql");
+
     public static void Map(RouteGroupBuilder group)
     {
         group.MapGet("/run-duration", async ([AsParameters] Query query, NpgsqlDataSource dataSource) =>
         {
-
             await using var connection = await dataSource.OpenConnectionAsync();
             await using var command = new NpgsqlCommand(Sql, connection);
-            command.Parameters.AddWithValue(query.PlayerId);
-            command.Parameters.AddWithValue(query.SessionId);
-            command.Parameters.AddWithValue(query.RunId);
+
+            // Pass parameter names matching the SQL @names
+            command.Parameters.AddWithValue("playerId", query.PlayerId);
+            command.Parameters.AddWithValue("sessionId", query.SessionId);
+            command.Parameters.AddWithValue("runId", query.RunId);
 
             await using var reader = await command.ExecuteReaderAsync();
-            if (!await reader.ReadAsync())
+            if (!await reader.ReadAsync() || reader.IsDBNull(1))
             {
                 return Results.NotFound();
             }
