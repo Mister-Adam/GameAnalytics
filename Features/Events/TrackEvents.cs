@@ -1,5 +1,6 @@
 namespace GameAnalytics.Features.Events;
 
+using System.Text.Json;
 using Npgsql;
 
 public static class TrackEvent
@@ -8,24 +9,24 @@ public static class TrackEvent
     public readonly record struct Request(
         string PlayerId,
         string EventName,
-        string? PayloadJson
+        JsonElement Payload
     );
 
     public static void Map(RouteGroupBuilder group)
     {
         group.MapPost("/", async (Request request, NpgsqlDataSource dataSource) =>
         {
-            // $3::jsonb cast as JSON otherwise need to  write NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Jsonb,Value = request.PayloadJson ?? "{}"
             const string sql = """
                 INSERT INTO events (player_id, event_name, payload, event_time)
-                VALUES ($1, $2, $3::jsonb, NOW());
+                VALUES (@playerId, @eventName, @payload, @eventTime);
                 """;
 
             await using var connection = await dataSource.OpenConnectionAsync();
             await using var command = new NpgsqlCommand(sql, connection);
-            command.Parameters.AddWithValue(request.PlayerId);
-            command.Parameters.AddWithValue(request.EventName);
-            command.Parameters.AddWithValue(request.PayloadJson ?? "{}");
+            command.Parameters.AddWithValue("playerId",request.PlayerId);
+            command.Parameters.AddWithValue("eventName",request.EventName);
+            command.Parameters.AddWithValue("payload",NpgsqlTypes.NpgsqlDbType.Json, request.Payload.ToString());
+            command.Parameters.AddWithValue("eventTime",NpgsqlTypes.NpgsqlDbType.Date,DateTime.Now);
 
             await command.ExecuteNonQueryAsync();
 
